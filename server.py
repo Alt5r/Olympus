@@ -23,19 +23,22 @@ def get_data():
     return jsonify(scraperCall())
 
 
-@app.route('/api/S5', methods=['GET'])
+@app.route('/api/v1', methods=['GET'])
 def get_data5():
+    args = request.args
+    print(args)
+    noResults = int(args['amount'])
     """
     returning 5 random proxies from source, for smaller scale operations maybe
     """
     data = scraperCall()
     
     lst5 = []
-    for i in range(5):
+    for i in range(noResults):
         rand = random.randint(0,len(data["proxies"]))
         lst5.append(data["proxies"][rand])
     
-    sample_data = {"n0":5, "proxies":lst5}
+    sample_data = {"n0":noResults, "proxies":lst5}
 
     return jsonify(sample_data)
 
