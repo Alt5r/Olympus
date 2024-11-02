@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify
 from utils import *
 import random
+from datetime import datetime
 
 app = Flask(__name__)
 
@@ -22,15 +23,44 @@ def scraperCall():
 def get_data():
     return jsonify(scraperCall())
 
+@app.route('/api/info', methods=['GET'])
+def get_info():
+    uptime = ((datetime.now() - start).seconds)/60 # uptime in minutes
+    data = scraperCall()
+    number = data['n0']
+    dist = {
+        "socks4":0, 
+        "socsk5":0,
+        "http":0
+    }
+
+    for proxy in data["proxies"]:
+        if "socks4" in proxy:
+            dist["socks4"] += 1
+        elif "socks5" in proxy:
+            dist["socsk5"] += 1
+        else:
+            dist["http"] += 1
+
+    data = {
+        "uptime":uptime,
+        "number":number,
+        "dist":dist
+    }
+    return data
+
 
 @app.route('/api/v1', methods=['GET'])
 def get_data5():
+    """
+    returning 5 random proxies from source, for smaller scale operations maybe
+
+    using query string parameters
+    """
     args = request.args
     print(args)
     noResults = int(args['amount'])
-    """
-    returning 5 random proxies from source, for smaller scale operations maybe
-    """
+    
     data = scraperCall()
     
     lst5 = []
@@ -43,4 +73,6 @@ def get_data5():
     return jsonify(sample_data)
 
 if __name__ == '__main__':
+    start = datetime.now()
     app.run(debug=True)
+    
