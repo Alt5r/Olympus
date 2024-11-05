@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify
 from utils import *
 import threading
 import random
+from datetime import datetime
 
 app = Flask(__name__)
 
@@ -25,20 +26,52 @@ def scraperCall():
 def get_data():
     return jsonify(scraperCall())
 
+@app.route('/api/info', methods=['GET'])
+def get_info():
+    uptime = ((datetime.now() - start).seconds)/60 # uptime in minutes
+    data = scraperCall()
+    number = data['n0']
+    dist = {
+        "socks4":0, 
+        "socsk5":0,
+        "http":0
+    }
 
-@app.route('/api/S5', methods=['GET'])
+    for proxy in data["proxies"]:
+        if "socks4" in proxy:
+            dist["socks4"] += 1
+        elif "socks5" in proxy:
+            dist["socsk5"] += 1
+        else:
+            dist["http"] += 1
+
+    data = {
+        "uptime":uptime,
+        "number":number,
+        "dist":dist
+    }
+    return data
+
+
+@app.route('/api/v1', methods=['GET'])
 def get_data5():
     """
     returning 5 random proxies from source, for smaller scale operations maybe
+
+    using query string parameters
     """
+    args = request.args
+    print(args)
+    noResults = int(args['amount'])
+    
     data = scraperCall()
     
     lst5 = []
-    for i in range(5):
+    for i in range(noResults):
         rand = random.randint(0,len(data["proxies"]))
         lst5.append(data["proxies"][rand])
     
-    sample_data = {"n0":5, "proxies":lst5}
+    sample_data = {"n0":noResults, "proxies":lst5}
 
     return jsonify(sample_data)
 
@@ -61,3 +94,4 @@ if __name__ == '__main__':
     thread.start()
 
     app.run(debug=True)
+    
