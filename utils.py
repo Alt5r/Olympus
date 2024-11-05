@@ -62,13 +62,13 @@ def tester(proxy):
         'https':f"{proxy}"
     }
 
-    test_url = "http://httpbin.org/ip"
+    test_url = "http://api.myip.com"
 
     try:
         # Make a request through the SOCKS proxy
-        response = requests.get(test_url, proxies=proxy, timeout=5)
+        response = requests.get(test_url, proxies=p, timeout=5)
         response.raise_for_status()  # Check if the request was successful
-        print("SOCKS proxy is working. Your IP is:", response.json()["origin"])
+        print("SOCKS proxy is working. Your IP is:", response.json())
         return True
     except requests.exceptions.RequestException as e:
         print("SOCKS proxy failed:", e)

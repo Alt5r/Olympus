@@ -3,10 +3,14 @@ from utils import *
 import threading
 import random
 from datetime import datetime
+import time 
+import requests
 
 app = Flask(__name__)
 
-data = {}
+global data
+
+data = {'n0':0, 'proxies':[]}
 
 def scraperCall():
     """
@@ -29,11 +33,11 @@ def get_data():
 @app.route('/api/info', methods=['GET'])
 def get_info():
     uptime = ((datetime.now() - start).seconds)/60 # uptime in minutes
-    data = scraperCall()
+    #data = scraperCall()
     number = data['n0']
     dist = {
         "socks4":0, 
-        "socsk5":0,
+        "socks5":0,
         "http":0
     }
 
@@ -41,16 +45,16 @@ def get_info():
         if "socks4" in proxy:
             dist["socks4"] += 1
         elif "socks5" in proxy:
-            dist["socsk5"] += 1
+            dist["socks5"] += 1
         else:
             dist["http"] += 1
 
-    data = {
+    data2 = {
         "uptime":uptime,
         "number":number,
         "dist":dist
     }
-    return data
+    return data2
 
 
 @app.route('/api/v1', methods=['GET'])
@@ -63,12 +67,12 @@ def get_data5():
     args = request.args
     print(args)
     noResults = int(args['amount'])
-    
+    global data
     data = scraperCall()
     
     lst5 = []
     for i in range(noResults):
-        rand = random.randint(0,len(data["proxies"]))
+        rand = random.randint(0,len(data["proxies"])-1)
         lst5.append(data["proxies"][rand])
     
     sample_data = {"n0":noResults, "proxies":lst5}
@@ -76,19 +80,24 @@ def get_data5():
     return jsonify(sample_data)
 
 def testingd():
-    try:
-        for proxy in data[1]:
-            if tester(proxy):
-                print(f"{proxy} is working")
-            else:
-                data[1][proxy].remove()
-                print(f"{proxy} is not working")
-    except Exception as e:
-        print(e)
-        print('data prolly empty')
+    while True:
+        try:
+            for proxy in data['proxies']:
+                if tester(proxy):
+                    print(f"{proxy} is working")
+                else:
+                    data[1][proxy].remove()
+                    print(f"{proxy} is not working")
+        except Exception as e:
+            #print(data['proxies'])
+            print(e)
+            #print('data prolly empty')
+        time.sleep(1)
 
 
 if __name__ == '__main__':
+    data = scraperCall()
+    start = datetime.now()
     thread = threading.Thread(target=testingd)
     thread.daemon = True
     thread.start()
