@@ -1,8 +1,11 @@
 from flask import Flask, request, jsonify
 from utils import *
+import threading
 import random
 
 app = Flask(__name__)
+
+data = {}
 
 def scraperCall():
     """
@@ -39,5 +42,22 @@ def get_data5():
 
     return jsonify(sample_data)
 
+def testingd():
+    try:
+        for proxy in data[1]:
+            if tester(proxy):
+                print(f"{proxy} is working")
+            else:
+                data[1][proxy].remove()
+                print(f"{proxy} is not working")
+    except Exception as e:
+        print(e)
+        print('data prolly empty')
+
+
 if __name__ == '__main__':
+    thread = threading.Thread(target=testingd)
+    thread.daemon = True
+    thread.start()
+
     app.run(debug=True)

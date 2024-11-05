@@ -3,6 +3,7 @@ import json
 
 
 
+
 def Req_proxy():
     """
     returning socks4,5 proxies that have had a < 40% success rate when used and returning the connection data in a list
@@ -55,4 +56,21 @@ def geonode_proxies():
     returning socks proxies for geonode service
     """
 
-print(geonode_proxies())
+def tester(proxy):
+    p = {
+        'http':f"{proxy}",
+        'https':f"{proxy}"
+    }
+
+    test_url = "http://httpbin.org/ip"
+
+    try:
+        # Make a request through the SOCKS proxy
+        response = requests.get(test_url, proxies=proxy, timeout=5)
+        response.raise_for_status()  # Check if the request was successful
+        print("SOCKS proxy is working. Your IP is:", response.json()["origin"])
+        return True
+    except requests.exceptions.RequestException as e:
+        print("SOCKS proxy failed:", e)
+        return False
+    
