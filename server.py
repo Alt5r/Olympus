@@ -86,6 +86,7 @@ def testingd():
                 if tester(proxy):
                     print(f"{proxy} is working")
                 else:
+                    global data
                     data['proxies'][proxy].remove()
                     data['n0'] -= 1
                     print(f"{proxy} is not working")
