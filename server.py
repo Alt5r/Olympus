@@ -67,8 +67,8 @@ def get_data5():
     args = request.args
     print(args)
     noResults = int(args['amount'])
-    global data
-    data = scraperCall()
+    #global data
+    #data = scraperCall()
     
     lst5 = []
     for i in range(noResults):
@@ -86,7 +86,8 @@ def testingd():
                 if tester(proxy):
                     print(f"{proxy} is working")
                 else:
-                    data[1][proxy].remove()
+                    data['proxies'][proxy].remove()
+                    data['n0'] -= 1
                     print(f"{proxy} is not working")
         except Exception as e:
             #print(data['proxies'])
@@ -94,10 +95,27 @@ def testingd():
             #print('data prolly empty')
         time.sleep(1)
 
+def scraperd():
+    while True:
+        global data
+        data = scraperCall()
+        print(f"pulled proxies {datetime.now()}")
+        time.sleep(600)
 
 if __name__ == '__main__':
     data = scraperCall()
+
+    # thread for pulling proxies from sources
+    scrapert = threading.Thread(target=scraperd)
+    scrapert.daemon = True
+    scrapert.start()
+
+
+
+
+
     start = datetime.now()
+    #thread for filtering pulled proxies 
     thread = threading.Thread(target=testingd)
     thread.daemon = True
     thread.start()
