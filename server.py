@@ -12,6 +12,10 @@ global data
 
 data = {'n0':0, 'proxies':[]}
 
+global gitdata4
+
+gitdata4 = {'n0':0, 'proxies':[]}
+
 def scraperCall():
     """
     collecting all proxies from all sources and returning into array
@@ -38,7 +42,11 @@ def get_info():
     dist = {
         "socks4":0, 
         "socks5":0,
-        "http":0
+        "http":0,
+        "gitlist":{
+            "socks4":0,
+            "socks5":0
+        }
     }
 
     for proxy in data["proxies"]:
@@ -48,12 +56,18 @@ def get_info():
             dist["socks5"] += 1
         else:
             dist["http"] += 1
+    try:
+        dist['gitlist']["socks4"] = len(gitdata4['proxies'])
+    except Exception as e:
+        print(e)
 
     data2 = {
         "uptime":uptime,
         "number":number,
         "dist":dist
     }
+    print(f"{data}\n\n\n\n")
+    print(gitdata4)
     return data2
 
 
@@ -80,28 +94,62 @@ def get_data5():
     return jsonify(sample_data)
 
 def testingd():
+    global data
+
+    proxyt = ""
     while True:
         try:
             for proxy in data['proxies']:
-                if tester(proxy):
-                    print(f"{proxy} is working")
-                else:
-                    global data
-                    data['proxies'][proxy].remove()
+                proxyt = proxy
+                if tester(proxy) == True:
+                    print(f"SOCKS/HTTP proxy working: {proxy}")
+                elif tester(proxy) == False:
+                    
+                    data['proxies'].remove(proxyt)
                     data['n0'] -= 1
-                    print(f"{proxy} is not working")
+                    print(f"SOCKS/HTTP proxy failed: {proxyt}")
+                #time.sleep(2)
         except Exception as e:
             #print(data['proxies'])
             print(e)
             #print('data prolly empty')
-        time.sleep(1)
+            data['proxies'].remove(proxyt)
+            data['n0'] -= 1
+            #print(f"{proxyt} is not working")
+        #time.sleep(2)
 
 def scraperd():
+    #runs getting the github proxy list once per run | to change
+    gitdata4['proxies'] = gitproxies4()
     while True:
         global data
         data = scraperCall()
         print(f"pulled proxies {datetime.now()}")
         time.sleep(600)
+
+def gitproxies4d():
+    '''
+    daemon to filter throuhg ~2700 proxies from socks4 list on github and append working ones to data var
+
+    '''
+    global data
+    #the above to allow changing global var
+
+    while True:
+        try:
+            for proxy in gitdata4['proxies']:
+                
+                if tester(proxy) == True:
+                    #print(f"{proxy} is working | Git proxies SOCKS4")
+                    data['proxies'].append(proxy)
+                    print("\n\nproxy appended\n\n")
+                    data['n0'] += 1
+                else:
+                    #print(f"{proxy} doesnt work | git proxies SOCKS4")
+                    pass
+                #time.sleep(2)
+        except Exception as e:
+            print(e, "error occured in try function for git proxies SOCKS4")
 
 if __name__ == '__main__':
     data = scraperCall()
@@ -111,6 +159,12 @@ if __name__ == '__main__':
     scrapert.daemon = True
     scrapert.start()
 
+    #daemon thread for filtering SOCKS4 proxies from github list
+    """
+    filterd = threading.Thread(target=gitproxies4d)
+    filterd.daemon = True
+    filterd.start()
+    """
 
 
 
